@@ -7,6 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 import os
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont  # ←これを追加
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import PageBreak
@@ -163,7 +164,7 @@ def generate_combined_pdf(blocks, rules, class_rank):
     elements = []
     styles = getSampleStyleSheet()
     try:
-        styles['Title'].fontName = 'PDF_FONT_NAME'
+        styles['Title'].fontName = PDF_FONT_NAME
     except Exception:
         pass
 
@@ -250,7 +251,7 @@ def generate_combined_pdf(blocks, rules, class_rank):
         table = Table(table_data, repeatRows=2)
 
         style_cmds = [
-            ('FONTNAME', (0, 0), (-1, -1), 'PDF_FONT_NAME'),
+            ('FONTNAME', (0, 0), (-1, -1), PDF_FONT_NAME),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             # ヘッダー背景（2行）
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -275,7 +276,7 @@ def generate_combined_pdf(blocks, rules, class_rank):
         for col_idx in summary_cols:
             style_cmds.append(('BACKGROUND', (col_idx, data_row_start), (col_idx, data_row_end), SUMMARY_BG))
             style_cmds.append(('TEXTCOLOR', (col_idx, data_row_start), (col_idx, data_row_end), colors.black))
-            style_cmds.append(('FONTNAME', (col_idx, data_row_start), (col_idx, data_row_end), 'PDF_FONT_NAME'))
+            style_cmds.append(('FONTNAME', (col_idx, data_row_start), (col_idx, data_row_end), PDF_FONT_NAME))
             style_cmds.append(('FONTSIZE', (col_idx, data_row_start), (col_idx, data_row_end), 8))
             # 視認性UPのため、合計スコア列の左右も少し強調（任意）
             style_cmds.append(('LINEBEFORE', (col_idx, data_row_start), (col_idx, data_row_end), 0.75, colors.darkgoldenrod))
