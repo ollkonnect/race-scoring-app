@@ -6,14 +6,30 @@ from reportlab.lib.pagesizes import landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+import os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import PageBreak
 import io
 import re
 
-# 日本語フォント登録（Windows環境）
-pdfmetrics.registerFont(TTFont('MSGothic', 'C:/Windows/Fonts/msgothic.ttc'))
+# 共通で使うフォント名（表/タイトルの指定に使う）
+PDF_FONT_NAME = "HeiseiKakuGo-W5"
+
+def setup_jp_font():
+    """WindowsではMSGothic、クラウドでは内蔵CJKフォントを使う。"""
+    global PDF_FONT_NAME
+    win_font = r"C:\Windows\Fonts\msgothic.ttc"
+    if os.path.exists(win_font):
+        # TTCなので subfontIndex を付けるのが安全（0でまずOK）
+        pdfmetrics.registerFont(TTFont("MSGothic", win_font, subfontIndex=0))
+        PDF_FONT_NAME = "MSGothic"
+    else:
+        # サーバー側はファイルがないので内蔵CIDフォントを使う
+        pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
+        PDF_FONT_NAME = "HeiseiKakuGo-W5"
+
+setup_jp_font()
 
 def safe_float(val):
     try:
@@ -147,7 +163,7 @@ def generate_combined_pdf(blocks, rules, class_rank):
     elements = []
     styles = getSampleStyleSheet()
     try:
-        styles['Title'].fontName = 'MSGothic'
+        styles['Title'].fontName = 'PDF_FONT_NAME'
     except Exception:
         pass
 
@@ -234,7 +250,7 @@ def generate_combined_pdf(blocks, rules, class_rank):
         table = Table(table_data, repeatRows=2)
 
         style_cmds = [
-            ('FONTNAME', (0, 0), (-1, -1), 'MSGothic'),
+            ('FONTNAME', (0, 0), (-1, -1), 'PDF_FONT_NAME'),
             ('FONTSIZE', (0, 0), (-1, -1), 8),
             # ヘッダー背景（2行）
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -259,7 +275,7 @@ def generate_combined_pdf(blocks, rules, class_rank):
         for col_idx in summary_cols:
             style_cmds.append(('BACKGROUND', (col_idx, data_row_start), (col_idx, data_row_end), SUMMARY_BG))
             style_cmds.append(('TEXTCOLOR', (col_idx, data_row_start), (col_idx, data_row_end), colors.black))
-            style_cmds.append(('FONTNAME', (col_idx, data_row_start), (col_idx, data_row_end), 'MSGothic'))
+            style_cmds.append(('FONTNAME', (col_idx, data_row_start), (col_idx, data_row_end), 'PDF_FONT_NAME'))
             style_cmds.append(('FONTSIZE', (col_idx, data_row_start), (col_idx, data_row_end), 8))
             # 視認性UPのため、合計スコア列の左右も少し強調（任意）
             style_cmds.append(('LINEBEFORE', (col_idx, data_row_start), (col_idx, data_row_end), 0.75, colors.darkgoldenrod))
